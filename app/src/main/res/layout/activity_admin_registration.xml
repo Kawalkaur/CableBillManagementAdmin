@@ -53,14 +53,6 @@
         android:layout_marginTop="10dp"/>
 
         <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/input_reEnterPassword"
-        android:inputType="textPassword"
-        android:hint="Re-Enter Password"
-        android:layout_marginTop="10dp"/>
-
-        <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/input_address"

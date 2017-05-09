@@ -1,5 +1,6 @@
 package com.kawal.cablebillmanagement;
 
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.ProgressDialog;
@@ -18,6 +19,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,28 +42,38 @@ public class AdminRegistration extends AppCompatActivity implements View.OnClick
     EditText _mobileText;
     @InjectView(R.id.input_password)
     EditText _passwordText;
-    @InjectView(R.id.input_reEnterPassword)
-    EditText _reEnterPasswordText;
-    @InjectView(R.id.btn_signup)
+
+   @InjectView(R.id.btn_signup)
     Button _signupButton;
     @InjectView(R.id.link_login)
     TextView _loginLink;
-
     AdminBean bean;
+    UserBean uBean, rcvUser;
     RequestQueue requestQueue;
     ProgressDialog progressDialog;
+     boolean updateMode;
+    SharedPreferences preferences;
+    SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_registration);
         ButterKnife.inject(this);
+        preferences =getSharedPreferences(Util.PREFS_NAME, MODE_PRIVATE);
+        editor = preferences.edit();
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Please wait....");
+        progressDialog.setCancelable(false);
+
         _signupButton.setOnClickListener(this);
-        bean = new AdminBean();
-
-
-
+        uBean = new UserBean();
         requestQueue = Volley.newRequestQueue(this);
+        //String name="admin";
+
+       Intent rcv = getIntent();
+        updateMode = rcv.hasExtra("keyUser");
 
      /*   _signupButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,8 +86,8 @@ public class AdminRegistration extends AppCompatActivity implements View.OnClick
             @Override
             public void onClick(View v) {
                     bean.setaName(_nameText.getText().toString().trim());
-                    bean.setaPhone(_mobileText.getText().toString().trim());
                     bean.setaEmail(_emailText.getText().toString().trim());
+                    bean.setaPhone(_mobileText.getText().toString().trim());
                     bean.setaPassword(_passwordText.getText().toString().trim());
                     bean.setaReEnterPass(_reEnterPasswordText.getText().toString().trim());
                     bean.setaAddress(_addressText.getText().toString().trim());
@@ -238,52 +252,131 @@ public class AdminRegistration extends AppCompatActivity implements View.OnClick
     /*public void buttonSubmit(View view) {
         startActivity( new Intent(AdminRegistration.this, AdminHomeActivity.class));
     }*/
+
+        if (updateMode) {
+            rcvUser = (UserBean) rcv.getSerializableExtra("keyUser");
+            _nameText.setText(rcvUser.getuName());
+            _mobileText.setText(rcvUser.getuPhone());
+            _emailText.setText(rcvUser.getuEmail());
+            _passwordText.setText(rcvUser.getuPassword());
+            _addressText.setText(rcvUser.getuAddress());
+            _signupButton.setText("Update");
+
+        }
     }
+
 
     @Override
     public void onClick(View v) {
-        if (v.getId()== R.id.btn_signup)
-        bean.setaName(_nameText.getText().toString().trim());
-        bean.setaPhone(_mobileText.getText().toString().trim());
-        bean.setaEmail(_emailText.getText().toString().trim());
-        bean.setaPassword(_passwordText.getText().toString().trim());
-        bean.setaReEnterPass(_reEnterPasswordText.getText().toString().trim());
-        bean.setaAddress(_addressText.getText().toString().trim());
+        if (v.getId() == R.id.btn_signup){
+            insertAdmin();
+        }
+
+    }
+
+    void insertAdmin (){
+        uBean.setUserType(0);
+        uBean.setuName(_nameText.getText().toString().trim());
+        uBean.setuPhone(_mobileText.getText().toString().trim());
+        uBean.setuEmail(_emailText.getText().toString().trim());
+        uBean.setuPassword(_passwordText.getText().toString().trim());
+        uBean.setuAddress(_addressText.getText().toString().trim());
 
         insertIntoCloud();
     }
 
-    public void insertIntoCloud() {
-        StringRequest request = new StringRequest(Request.Method.POST, Util.INSERT_ADMIN_PHP, new Response.Listener<String>() {
+   public void insertIntoCloud() {
+
+       Log.i("TEST",uBean.toString());
+
+        String url = "";
+        if (!updateMode) {
+            url = Util.INSERT_USER_PHP;
+
+        } else {
+            Log.e("user", rcvUser.toString());
+            url = Util.UPDATE_USER_PHP;
+        }
+       // progressDialog.show();
+        StringRequest request = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
+                Log.i("TEST",response);
+
+               // progressDialog.dismiss();
                 Toast.makeText(AdminRegistration.this, "Success", Toast.LENGTH_LONG).show();
                 Intent intent = new Intent(AdminRegistration.this, AdminHomeActivity.class);
                 startActivity(intent);
-                finish();
-            }
+
+
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    int success = jsonObject.getInt("success");
+                    String message = jsonObject.getString("message");
+
+                    if (success == 1) {
+                        Toast.makeText(AdminRegistration.this, message, Toast.LENGTH_SHORT).show();
+
+                        if (!updateMode){
+                            editor.putString(Util.KEY_NAME,uBean.getuName());
+                            editor.putString(Util.KEY_PHONE, uBean.getuPhone());
+                            editor.putString(Util.KEY_EMAIL, uBean.getuEmail());
+                            editor.putString(Util.KEY_PASSWORD, uBean.getuPassword());
+                            editor.putString(Util.KEY_ADDRESS, uBean.getuAddress());
+
+                            editor.commit();
+
+                            Intent home  = new Intent(AdminRegistration.this, AdminHomeActivity.class);
+                            startActivity(home);
+                            finish();
+                        }
+                        if (updateMode)
+                        finish();
+                    } else {
+                        Toast.makeText(AdminRegistration.this, message, Toast.LENGTH_SHORT).show();
+                    }
+           //         progressDialog.dismiss();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Toast.makeText(AdminRegistration.this, "Some Exception", Toast.LENGTH_SHORT).show();
+                }
+                 }
 
 
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(AdminRegistration.this, "Some Error", Toast.LENGTH_SHORT).show();
+         //       progressDialog.dismiss();
+                Toast.makeText(AdminRegistration.this, "Some Error"+error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }) {
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String> map = new HashMap();
-                map.put("aName", bean.getaName());
-                map.put("aPhone", bean.getaPhone());
-                map.put("aEmail", bean.getaEmail());
-                map.put("aPassword", bean.getaPassword());
-                map.put("aReEnterPass", bean.getaReEnterPass());
-                map.put("aAddress", bean.getaAddress());
+                Map<String, String> map = new HashMap<String, String>();
+
+                if (updateMode)
+                    map.put("id", String.valueOf(rcvUser.getId()));
+                map.put("uName", uBean.getuName());
+                map.put("uPhone", uBean.getuPhone());
+                map.put("uEmail", uBean.getuEmail());
+                map.put("uPassword", uBean.getuPassword());
+                map.put("uAddress", uBean.getuAddress());
+                map.put("userType", String.valueOf(uBean.getUserType()));
 
                 return map;
             }
         };
         requestQueue.add(request);
+        //clearFields();
     }
 
-   }
+//    void clearFields() {
+//        _nameText.setText("");
+//        _mobileText.setText("");
+//        _emailText.setText("");
+//        _passwordText.setText("");
+//        _reEnterPasswordText.setText("");
+//        _addressText.setText("");
+//
+//    }
+}

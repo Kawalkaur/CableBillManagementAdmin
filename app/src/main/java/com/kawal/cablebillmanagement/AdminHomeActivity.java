@@ -88,7 +88,11 @@ public class AdminHomeActivity extends AppCompatActivity
 
         if (id == R.id.nav_managers) {
             // Handle the camera action
+            Intent intent = new Intent(AdminHomeActivity.this, AllManagers.class);
+            startActivity(intent);
         } else if (id == R.id.nav_customers) {
+            Intent intent = new Intent(AdminHomeActivity.this, AllCustomers.class);
+            startActivity(intent);
 
         } else if (id == R.id.nav_slideshow) {
 

@@ -38,7 +38,7 @@ public class AdminLogin extends AppCompatActivity implements View.OnClickListene
     TextView _signupLink;
 
     RequestQueue requestQueue;
-    AdminBean bean;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
