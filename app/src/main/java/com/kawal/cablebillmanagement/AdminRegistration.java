@@ -1,6 +1,8 @@
 package com.kawal.cablebillmanagement;
 
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.ProgressDialog;
@@ -43,15 +45,16 @@ public class AdminRegistration extends AppCompatActivity implements View.OnClick
     @InjectView(R.id.input_password)
     EditText _passwordText;
 
-   @InjectView(R.id.btn_signup)
+    @InjectView(R.id.btn_signup)
     Button _signupButton;
     @InjectView(R.id.link_login)
     TextView _loginLink;
-    AdminBean bean;
     UserBean uBean, rcvUser;
     RequestQueue requestQueue;
     ProgressDialog progressDialog;
-     boolean updateMode;
+    boolean updateMode;
+    ConnectivityManager connectivityManager;
+    NetworkInfo networkInfo;
     SharedPreferences preferences;
     SharedPreferences.Editor editor;
 
@@ -60,7 +63,7 @@ public class AdminRegistration extends AppCompatActivity implements View.OnClick
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_registration);
         ButterKnife.inject(this);
-        preferences =getSharedPreferences(Util.PREFS_NAME, MODE_PRIVATE);
+        preferences = getSharedPreferences(Util.PREFS_NAME, MODE_PRIVATE);
         editor = preferences.edit();
 
         progressDialog = new ProgressDialog(this);
@@ -68,21 +71,40 @@ public class AdminRegistration extends AppCompatActivity implements View.OnClick
         progressDialog.setCancelable(false);
 
         _signupButton.setOnClickListener(this);
+        _loginLink.setOnClickListener(this);
         uBean = new UserBean();
         requestQueue = Volley.newRequestQueue(this);
         //String name="admin";
 
-       Intent rcv = getIntent();
+        Intent rcv = getIntent();
         updateMode = rcv.hasExtra("keyUser");
 
+        _signupButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(AdminRegistration.this, AdminHomeActivity.class);
+                startActivity(intent);
+
+            }
+        });
+
+        _loginLink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), AdminLogin.class);
+                startActivity(intent);
+                finish();
+                overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
+            }
+        });
      /*   _signupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 signup();
             }
-        });
+        });*/
 
-        _loginLink.setOnClickListener(new View.OnClickListener() {
+        /*_loginLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                     bean.setaName(_nameText.getText().toString().trim());
@@ -264,17 +286,34 @@ public class AdminRegistration extends AppCompatActivity implements View.OnClick
 
         }
     }
+    boolean isNetWorkConnected(){
+
+        connectivityManager = (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
+        networkInfo = connectivityManager.getActiveNetworkInfo();
+
+
+        return (networkInfo!=null && networkInfo.isConnected());
+
+    }
 
 
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.btn_signup){
+        if (v.getId() == R.id.btn_signup) {
             insertAdmin();
+            if (validateFields()){
+                if (isNetWorkConnected())
+                    insertIntoCloud();
+                else
+                    Toast.makeText(this, "Please connect to Internet", Toast.LENGTH_LONG).show();
+            }else {
+                Toast.makeText(this, "Please correct Input", Toast.LENGTH_LONG).show();
+            }
         }
 
     }
 
-    void insertAdmin (){
+    void insertAdmin() {
         uBean.setUserType(0);
         uBean.setuName(_nameText.getText().toString().trim());
         uBean.setuPhone(_mobileText.getText().toString().trim());
@@ -282,12 +321,12 @@ public class AdminRegistration extends AppCompatActivity implements View.OnClick
         uBean.setuPassword(_passwordText.getText().toString().trim());
         uBean.setuAddress(_addressText.getText().toString().trim());
 
-        insertIntoCloud();
-    }
 
-   public void insertIntoCloud() {
+        }
 
-       Log.i("TEST",uBean.toString());
+    public void insertIntoCloud() {
+
+        Log.i("TEST", uBean.toString());
 
         String url = "";
         if (!updateMode) {
@@ -297,13 +336,13 @@ public class AdminRegistration extends AppCompatActivity implements View.OnClick
             Log.e("user", rcvUser.toString());
             url = Util.UPDATE_USER_PHP;
         }
-       // progressDialog.show();
+        progressDialog.show();
         StringRequest request = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.i("TEST",response);
+                Log.i("TEST", response);
+                progressDialog.show();
 
-               // progressDialog.dismiss();
                 Toast.makeText(AdminRegistration.this, "Success", Toast.LENGTH_LONG).show();
                 Intent intent = new Intent(AdminRegistration.this, AdminHomeActivity.class);
                 startActivity(intent);
@@ -317,8 +356,8 @@ public class AdminRegistration extends AppCompatActivity implements View.OnClick
                     if (success == 1) {
                         Toast.makeText(AdminRegistration.this, message, Toast.LENGTH_SHORT).show();
 
-                        if (!updateMode){
-                            editor.putString(Util.KEY_NAME,uBean.getuName());
+                        if (!updateMode) {
+                            editor.putString(Util.KEY_NAME, uBean.getuName());
                             editor.putString(Util.KEY_PHONE, uBean.getuPhone());
                             editor.putString(Util.KEY_EMAIL, uBean.getuEmail());
                             editor.putString(Util.KEY_PASSWORD, uBean.getuPassword());
@@ -326,28 +365,28 @@ public class AdminRegistration extends AppCompatActivity implements View.OnClick
 
                             editor.commit();
 
-                            Intent home  = new Intent(AdminRegistration.this, AdminHomeActivity.class);
+                            Intent home = new Intent(AdminRegistration.this, AdminHomeActivity.class);
                             startActivity(home);
                             finish();
                         }
                         if (updateMode)
-                        finish();
+                            finish();
                     } else {
                         Toast.makeText(AdminRegistration.this, message, Toast.LENGTH_SHORT).show();
                     }
-           //         progressDialog.dismiss();
+                    progressDialog.dismiss();
                 } catch (JSONException e) {
                     e.printStackTrace();
                     Toast.makeText(AdminRegistration.this, "Some Exception", Toast.LENGTH_SHORT).show();
                 }
-                 }
+            }
 
 
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-         //       progressDialog.dismiss();
-                Toast.makeText(AdminRegistration.this, "Some Error"+error.getMessage(), Toast.LENGTH_SHORT).show();
+                //       progressDialog.dismiss();
+                Toast.makeText(AdminRegistration.this, "Some Error" + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }) {
             @Override
@@ -367,16 +406,45 @@ public class AdminRegistration extends AppCompatActivity implements View.OnClick
             }
         };
         requestQueue.add(request);
-        //clearFields();
+        clearFields();
     }
 
-//    void clearFields() {
-//        _nameText.setText("");
-//        _mobileText.setText("");
-//        _emailText.setText("");
-//        _passwordText.setText("");
-//        _reEnterPasswordText.setText("");
-//        _addressText.setText("");
-//
-//    }
+    void clearFields() {
+        _nameText.setText("");
+        _mobileText.setText("");
+        _emailText.setText("");
+        _passwordText.setText("");
+        _addressText.setText("");
+
+    }
+
+    boolean validateFields() {
+        boolean flag = true;
+
+        if (uBean.getuName().isEmpty()) {
+            flag = false;
+            _nameText.setError("Please Enter your name");
+        }
+
+        if (uBean.getuPhone().isEmpty()) {
+            flag = false;
+            _mobileText.setError("Please Enter Phone");
+        } else {
+            if (uBean.getuPhone().length() < 10) {
+                flag = false;
+                _mobileText.setError("Please Enter 10 digits Phone Number");
+            }
+        }
+        if (uBean.getuEmail().isEmpty()) {
+            flag = false;
+            _emailText.setError("Please enter Email");
+        } else {
+            if (!(uBean.getuEmail().contains("@") && uBean.getuEmail().contains("."))) {
+                flag = false;
+                _emailText.setError("Please Enter correct Email");
+            }
+
+        }
+        return flag;
+    }
 }

@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:background="@drawable/images"
     android:fitsSystemWindows="true"
     tools:context="com.kawal.cablebillmanagement.AdminRegistration">
 
@@ -14,7 +15,6 @@
         android:paddingTop="56dp"
         android:paddingLeft="24dp"
         android:paddingRight="24dp">
-
         <ImageView android:src="@drawable/fastwaylogo"
             android:layout_width="wrap_content"
             android:layout_height="72dp"
@@ -25,6 +25,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/input_name"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
             android:inputType="textPersonName"
             android:hint="Name"/>
 
@@ -32,6 +34,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/input_mobile"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
             android:inputType="phone"
             android:hint="Mobile Number"
             android:layout_marginTop="10dp"/>
@@ -42,21 +46,27 @@
             android:id="@+id/input_email"
             android:inputType="textEmailAddress"
             android:hint="Email"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
             android:layout_marginTop="10dp"/>
 
         <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
         android:id="@+id/input_password"
         android:inputType="textPassword"
-        android:hint="Password"
-        android:layout_marginTop="10dp"/>
+        android:hint="Password" />
+
 
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/input_address"
             android:inputType="textPostalAddress"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
             android:hint="Address"
             android:layout_marginTop="10dp"/>
 

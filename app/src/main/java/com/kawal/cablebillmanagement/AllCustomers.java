@@ -33,7 +33,7 @@ import java.util.Map;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
-public class AllCustomers extends AppCompatActivity implements AdapterView.OnItemClickListener {
+    public class AllCustomers extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
     @InjectView(R.id.listView)
     ListView listView;
@@ -92,7 +92,7 @@ public class AllCustomers extends AppCompatActivity implements AdapterView.OnIte
                         Log.i("RESP",response.toString());
                         Log.i("sizee", jsonArray.length() + "");
                         int id = 0 , u;
-                        String n = "", m = "", e = "", p = "", a = "";
+                        String n = "", m = "", e = "", p = "", a = "", c="";
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject jObj = jsonArray.getJSONObject(i);
 
@@ -103,8 +103,10 @@ public class AllCustomers extends AppCompatActivity implements AdapterView.OnIte
                             p = jObj.getString("uPassword");
                             a = jObj.getString("uAddress");
                             u = jObj.getInt("UserType");
+                            c= jObj.getString("connectionType");
 
-                            objectList.add(new UserBean( id, n, m, e, p, a, u));
+
+                            objectList.add(new UserBean( id, n, m, e, p, a, u,c));
                         }
                     }
                     Log.i("objectlist",objectList.size()+"");

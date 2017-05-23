@@ -1,6 +1,7 @@
 package com.kawal.cablebillmanagement;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -17,12 +18,29 @@ import android.view.MenuItem;
 public class AdminHomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+
+    SharedPreferences preferences;
+    SharedPreferences.Editor editor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_home);
 
+        preferences = getSharedPreferences(Util.PREFS_NAME,MODE_PRIVATE);
+        editor= preferences.edit();
+
+
+        String name = preferences.getString(Util.KEY_NAME,"");
+        String phone = preferences.getString(Util.KEY_PHONE,"");
+        String email = preferences.getString(Util.KEY_EMAIL,"");
+        String password = preferences.getString(Util.KEY_PASSWORD,"");
+        String address = preferences.getString(Util.KEY_ADDRESS,"");
+
+
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
 //        setSupportActionBar(toolbar);
 
 //        Intent intent = new Intent(this, AdminLogin.class);
