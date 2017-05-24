@@ -1,10 +1,12 @@
 package com.kawal.cablebillmanagement;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -118,7 +120,24 @@ public class AdminHomeActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_share) {
 
-        } else if (id == R.id.nav_send) {
+        } else if (id == R.id.nav_logout) {
+            AlertDialog.Builder ad =  new  AlertDialog.Builder(AdminHomeActivity.this);
+            ad.setTitle("Do You Wish to Logout");
+            ad.setCancelable(false);
+            ad.setNegativeButton("Yes", new DialogInterface.OnClickListener() {
+
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    editor.clear();
+                    editor.commit();
+                    Intent i=new Intent(AdminHomeActivity.this,AdminRegistration.class);
+                    startActivity(i);
+                    // finishAffinity();
+
+                }
+            });
+            ad.setPositiveButton("No",null);
+            ad.create().show();
 
         }
 

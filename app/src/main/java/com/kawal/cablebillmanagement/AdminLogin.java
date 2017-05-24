@@ -44,7 +44,7 @@ public class AdminLogin extends AppCompatActivity implements View.OnClickListene
     SharedPreferences.Editor editor;
     ProgressDialog progressDialog;
     RequestQueue requestQueue;
-    String login_phone,login_password;
+    String uEmail, uPassword;
 
 
 
@@ -63,7 +63,6 @@ public class AdminLogin extends AppCompatActivity implements View.OnClickListene
         userBean = new UserBean();
         preferences = getSharedPreferences(Util.PREFS_NAME, MODE_PRIVATE);
         editor = preferences.edit();
-
     }
 
 
@@ -82,20 +81,20 @@ public class AdminLogin extends AppCompatActivity implements View.OnClickListene
             startActivity(i);
             finish();
         } else if (id == R.id.btn_login) {
-            login_phone = emailText.getText().toString().trim();
-            login_password = passwordText.getText().toString().trim();
+             uEmail= emailText.getText().toString().trim();
+            uPassword = passwordText.getText().toString().trim();
 
             login();
 
         }
     }
     void login(){
-//        final String token= FirebaseInstanceId.getInstance().getToken();
-//        Log.e("token ",token);
+//
         progressDialog.show();
         StringRequest stringRequest=new StringRequest(Request.Method.POST, Util.LOGIN_PHP, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
+                Log.i("Resp", response);
                 try{
                     JSONObject object=new JSONObject(response);
                     JSONArray jsonArray = object.getJSONArray("user");
@@ -103,7 +102,6 @@ public class AdminLogin extends AppCompatActivity implements View.OnClickListene
                     String n = "", m = "", e = "", p = "", a = "";
                     for(int j=0;j<jsonArray.length();j++) {
                         JSONObject jObj = jsonArray.getJSONObject(j);
-                        id = jObj.getInt("ID");
 //These are coloumn name in database table
                         id = jObj.getInt("id");
                         n = jObj.getString("uName");
@@ -118,13 +116,11 @@ public class AdminLogin extends AppCompatActivity implements View.OnClickListene
 
                     String mess=object.getString("message");
                     if(mess.contains("Login Sucessful")) {
-                        editor.putString(Util.KEY_PHONE, userBean.getuPhone());
+                        editor.putString(Util.KEY_EMAIL, userBean.getuEmail());
                         editor.putString("name",userBean.getuName());
-                       // editor.putString("phone",userBean.getuPhone());
-                        editor.putString("email",userBean.getuEmail());
+                        editor.putString("phone",userBean.getuPhone());
                         editor.putString("password",userBean.getuPassword());
                         editor.putString("address",userBean.getuAddress());
-                      //  editor.putString("token",token);
 
 
                         editor.commit();
@@ -153,150 +149,15 @@ public class AdminLogin extends AppCompatActivity implements View.OnClickListene
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String,String> map=new HashMap<>();
-                map.put("phone",login_phone);
-                map.put("password",login_password);
+                map.put("email",uEmail);
+                Log.i("email", uEmail);
+                map.put("password",uPassword);
+                Log.i("password",uPassword);
                // map.put("token",token);
                 return map;
             }
         };
         requestQueue.add(stringRequest);
     }
-
-        /*  retrieveFromcloud();
-        _loginButton.setOnClickListener(this);
-        _signupLink.setOnClickListener(this);
-    }
-    @Override
-    public void onClick(View v) {
-        if (v.getId() == R.id.btn_login){
-            login();
-        }
-        _signupLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(),AdminRegistration.class);
-                startActivityForResult(intent,REQUEST_SIGNUP);
-                finish();
-                overridePendingTransition(R.anim.push_left_in,R.anim.push_left_out);
-            }
-        });
-    }
-
-
-     /* _loginButton.setOnClickListener(new View.OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-            login();
-        }
-    });
-
-        _signupLink.setOnClickListener(new View.OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-            // Start the Signup activity
-            Intent intent = new Intent(getApplicationContext(), AdminRegistration.class);
-            startActivityForResult(intent, REQUEST_SIGNUP);
-            finish();
-            overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
-        }
-    });
-}
-
-    public void login() {
-        Log.d(TAG, "Login");
-
-        if (!validate()) {
-            onLoginFailed();
-            return;
-        }
-
-        _loginButton.setEnabled(false);
-
-        final ProgressDialog progressDialog = new ProgressDialog(AdminLogin.this,
-                R.style.AppTheme_Dark_Dialog);
-        progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Authenticating...");
-        progressDialog.show();
-
-        String email = _emailText.getText().toString();
-        String password = _passwordText.getText().toString();
-
-        // TODO: Implement your own authentication logic here.
-
-        new android.os.Handler().postDelayed(
-                new Runnable() {
-                    public void run() {
-                        // On complete call either onLoginSuccess or onLoginFailed
-                        onLoginSuccess();
-                        // onLoginFailed();
-                        progressDialog.dismiss();
-                    }
-                }, 3000);
-    }
-
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_SIGNUP) {
-            if (resultCode == RESULT_OK) {
-
-                // TODO: Implement successful signup logic here
-                // By default we just finish the Activity and log them in automatically
-                this.finish();
-            }
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        // Disable going back to the MainActivity
-        moveTaskToBack(true);
-    }
-
-    public void onLoginSuccess() {
-        _loginButton.setEnabled(true);
-        finish();
-    }
-
-    public void onLoginFailed() {
-        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
-
-        _loginButton.setEnabled(true);
-    }
-
-    public boolean validate() {
-        boolean valid = true;
-
-        String email = _emailText.getText().toString();
-        String password = _passwordText.getText().toString();
-
-        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText.setError("enter a valid email address");
-            valid = false;
-        } else {
-            _emailText.setError(null);
-        }
-        if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            _passwordText.setError("between 4 and 10 alphanumeric characters");
-            valid = false;
-        } else {
-            _passwordText.setError(null);
-        }
-
-        return valid;
-    }
-
-
-
-    @Override
-    public void onClick(View v) {
-        Intent i = new Intent(AdminLogin.this, AdminRegistration.class);
-        startActivity(i);
-        finish();
-
-    }*/
-
 
 }

@@ -91,7 +91,7 @@ import butterknife.InjectView;
                         JSONArray jsonArray = jsonObject.getJSONArray("users");
                         Log.i("RESP",response.toString());
                         Log.i("sizee", jsonArray.length() + "");
-                        int id = 0 , u;
+                        int id = 0 , u, s =0;
                         String n = "", m = "", e = "", p = "", a = "", c="";
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject jObj = jsonArray.getJSONObject(i);
@@ -104,9 +104,8 @@ import butterknife.InjectView;
                             a = jObj.getString("uAddress");
                             u = jObj.getInt("UserType");
                             c= jObj.getString("connectionType");
-
-
-                            objectList.add(new UserBean( id, n, m, e, p, a, u,c));
+                            s = jObj.getInt("status");
+                            objectList.add(new UserBean( id, n, m, e, p, a, u,c,s));
                         }
                     }
                     Log.i("objectlist",objectList.size()+"");
@@ -123,7 +122,8 @@ import butterknife.InjectView;
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(AllCustomers.this, "Some Error", Toast.LENGTH_SHORT).show();
+                Log.i("error", error.getMessage());
+                Toast.makeText(AllCustomers.this, "Some Error",Toast.LENGTH_SHORT).show();
             }
         });
         requestQueue.add(stringRequest);
